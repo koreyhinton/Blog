@@ -1,7 +1,9 @@
 #+TITLE: Communicate Between WatchKit Extension and App
 #+DESCRIPTION: Effectively communicate between WatchKit Extension and the iPhone App
 #+KEYWORDS: watchkit, app, extension, ios, blog, korey hinton
+#+OPTIONS: timestamp:nil
 #+DATE: Sun, 08 Feb 2015
+
 
 #+INCLUDE: header.org
 
@@ -78,7 +80,7 @@ class Receivable {
         for (key,val) in info {
             userInfo[key] = val
         }
-    }
+    } 
 }
 #+END_SRC
 
@@ -138,7 +140,7 @@ reply: (([NSObject : AnyObject]!) -> Void)!) {
 #+END_SRC
 As you can see this is a nice wrapper around the dictionary but it still becomes cumbersome to send a lot of data. What would be nice is if we can send a real object as a value in the dictionary. i.e.: =request["Workout"] = self.currentWorkout=
 * Auto Encoding and Auto Decoding
-  If you are like me you try to avoid breaking out the NSCoding protocol if possible. There are a lot of steps. What if we could simplify those steps so that we can objects directly as a value of the Receivable object. Let's see what an Auto-encoded object would look like:
+  If you are like me you'll try to avoid breaking out the NSCoding protocol if possible. There are a lot of steps. What if we could simplify those steps so that we can objects directly as a value of the Receivable object. Let's see what an Auto-encoded object would look like:
 
 #+BEGIN_SRC swift
 import Foundation
@@ -199,3 +201,4 @@ workout.miles = 1
 var request = Receivable(type: SaveData)
 request["Workout"] = workout
 #+END_SRC
+
