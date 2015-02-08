@@ -1,0 +1,1 @@
+#+HTML: <div id="navheader" class="btn-group"><a class="btn btn-default" href="/">Korey Hinton</a><a class="btn btn-default" href="/blog/">Blog</a></div><br /><br />

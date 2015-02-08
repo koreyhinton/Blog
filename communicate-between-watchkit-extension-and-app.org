@@ -1,0 +1,201 @@
+#+TITLE: Communicate Between WatchKit Extension and App
+#+DESCRIPTION: Effectively communicate between WatchKit Extension and the iPhone App
+#+KEYWORDS: watchkit, app, extension, ios, blog, korey hinton
+#+DATE: Sun, 08 Feb 2015
+
+#+INCLUDE: header.org
+
+* Communicating with parent app
+  There are a variety of reasons why you'd need to communicate data from the WatchKit Extension to the parent app. If you are saving data to your app group's =NSUserDefaults= or app group's Core Data store then you don't need to communicate the change to the parent app, just save the changes in the extension and then have the app re-fetch the data. But memory intensive operations need to be done by the parent app instead of the app extension. Apple has limited certain APIs that are allowed to be used in the app extension to prevent this. One of those being HealthKit's HKHealthStore. If you have a watch app that relies heavily on HealthKit then you are going to need to find an effective way to send and receive data to and from the parent iPhone app.
+
+  Apple has provided a way to communicate data in a dictionary called userInfo. Unfortunately data must sent must be either primitive or plist types unless the objects you send conform to NSCoding and know how to encode and decode themselves.
+
+** AppDelegate.swift
+#+BEGIN_SRC swift
+func application(application: UIApplication!, 
+                 handleWatchKitExtensionRequest userInfo: [NSObject : AnyObject]!, 
+                 reply: (([NSObject : AnyObject]!) -> Void)!) {
+    // parent app receives userInfo dictionary here with data sent from watch extension
+    reply(["SaveSucceeded":true]) // send a reply response
+}
+#+END_SRC
+
+** InterfaceController.swift
+#+BEGIN_SRC swift
+@IBAction func savePressed() {
+    var userInfo = ["ShouldSave":true]
+    WKInterfaceController.openParentApplication(userInfo, 
+                                                reply: { (userInfo:[NSObject : AnyObject]!, error: NSError!) -> Void in
+            
+        // do something with the reply's userInfo
+        
+            
+    })
+
+
+}
+#+END_SRC
+#+INCLUDE: footer.org
+* Receivables
+  As you can imagine having a huge dictionary of data which might be used to compose a variety of objects and options is not ideal. It might become immediately obvious that there are multiple reasons we might be communicating to the parent app. Do we want to send data to the parent app with the intent it'll get processed and saved by the parent app or we might be requesting data in which case we rely on the reply to have the data we need. For this reason I found a way to give a type to the request. In the example below I use types: =SaveData=, =GetData=, and =SaveDataGetData=. The =Receivable= class allows you to create the Receivable from a userInfo dictionary or by giving it a type. Under the hood it automatically saves the type in its userInfo dictionary. Also, we have enabled subscripting for key-values that get transferred directly to and from the userInfo dictioanry and also allows you to subscript a dictionary of key-value objects via the =set= method. 
+
+#+BEGIN_SRC swift
+import Foundation
+
+
+let ReceiveTypeKey = "ReceiveTypeKey"
+let SaveDataKey = "SaveDataKey"
+
+enum ReceiveType: String {
+    case SaveData = "SaveData"
+    case GetData = "GetData"
+    case SaveDataGetData = "SaveDataGetData"
+}
+
+class Receivable {
+    private(set) var userInfo : [NSObject : AnyObject]!
+    
+    subscript(key: AnyObject) -> AnyObject? {
+        get {
+            return userInfo[key as NSObject]
+        }
+        set {
+            userInfo[key as NSObject] = newValue
+        }
+    }
+    
+    var type: ReceiveType
+    
+    init(type receiveType:ReceiveType) {
+        type = receiveType
+        userInfo[ReceiveTypeKey] = type.rawValue
+    }
+    init(userInfo info: [NSObject : AnyObject]) {
+        userInfo = info
+        type = ReceiveType(rawValue: userInfo[ReceiveTypeKey] as String)!
+    }
+    func set(info: [NSObject : AnyObject]) {
+        for (key,val) in info {
+            userInfo[key] = val
+        }
+    }
+}
+#+END_SRC
+
+Using a userInfo dictionary to pass data is no longer a chore. Only 1 thing is still missing and that is sending custom objects. See the [[Auto Encoding and Auto Decoding]] section below to see how we can give it custom objects that get autoencoded and decoded. This is important since if you pass in an object that doesn't conform to NSCoding then it will crash when you try to send it to the parent app. Let's take a look at the nice API we can use for requests and repsonses.
+** Request
+#+BEGIN_SRC swift
+
+var request = Receivable(type: .SaveData)
+
+request["WorkoutName"] = "Running"
+request["WorkoutMins"] = 50
+
+
+request.set(["WorkoutID":31,"WorkoutMiles":1.3]) // set multiple key-values at once
+
+WKInterfaceController.openParentApplication(request.userInfo, 
+                                                reply: { (userInfo:[NSObject : AnyObject]!, error: NSError!) -> Void in
+            
+        // ignoring reply since we are just saving data to parent application
+})
+
+#+END_SRC
+
+** Response
+#+BEGIN_SRC swift
+func application(application: UIApplication!, handleWatchKitExtensionRequest userInfo: [NSObject : AnyObject]!, 
+reply: (([NSObject : AnyObject]!) -> Void)!) {
+        
+    let request = Receivable(userInfo: userInfo) // sent request created automatically from userInfo
+
+    if request.type == .SaveData {
+        let workoutName = request["WorkoutName"]
+        // ...
+        // save the data
+    }
+}
+#+END_SRC
+
+** GetData Response
+#+BEGIN_SRC swift
+func application(application: UIApplication!, handleWatchKitExtensionRequest userInfo: [NSObject : AnyObject]!, 
+reply: (([NSObject : AnyObject]!) -> Void)!) {
+        
+    let request = Receivable(userInfo: userInfo) // sent request created automatically from userInfo
+
+    if request.type == .SaveData {
+        let workoutName = request["WorkoutName"]
+        // ...
+        // save the data
+    } else if request.type == .GetData {
+        var response = Receivable(type: RequestType.GetData) 
+        response["LastWorkoutName"] = //...
+        // ...
+        reply(response.userInfo)
+    }
+}
+#+END_SRC
+As you can see this is a nice wrapper around the dictionary but it still becomes cumbersome to send a lot of data. What would be nice is if we can send a real object as a value in the dictionary. i.e.: =request["Workout"] = self.currentWorkout=
+* Auto Encoding and Auto Decoding
+  If you are like me you try to avoid breaking out the NSCoding protocol if possible. There are a lot of steps. What if we could simplify those steps so that we can objects directly as a value of the Receivable object. Let's see what an Auto-encoded object would look like:
+
+#+BEGIN_SRC swift
+import Foundation
+
+class AutoCoded: NSObject, NSCoding {
+    
+    private let AutoCodingKey = "autoEncodings"
+    
+    override init() {
+        super.init()
+    }
+    
+    required init(coder aDecoder: NSCoder) {
+        
+        super.init()
+        
+        let decodings = aDecoder.decodeObjectForKey(AutoCodingKey) as [String]
+        setValue(decodings, forKey: AutoCodingKey)
+        
+        for decoding in decodings {
+            setValue(aDecoder.decodeObjectForKey(decoding), forKey: decoding)
+        }
+        
+        
+    }
+    func encodeWithCoder(aCoder: NSCoder) {
+        
+        aCoder.encodeObject(valueForKey(AutoCodingKey), forKey: AutoCodingKey)
+        
+        for encoding in valueForKey(AutoCodingKey) as [String] {
+            aCoder.encodeObject(valueForKey(encoding), forKey: encoding)
+        }
+    }
+}
+#+END_SRC
+
+As you can see we are using Key-Value Coding's =valueForKey= to get the names of the properties to encode/decode from a string array named "autoEncodings". If we inherit from this object and create a string array variable with that name then it will iterate on the names and decode/encode them.
+
+#+BEGIN_SRC swift
+class Workout: AutoCoded {
+    var name: String?
+    var mins: Int?
+    var id: Int?
+    var miles: Double?
+    var autoEncodings = ["name","mins","miles","id"]
+}
+#+END_SRC
+
+And that's it. Our Workout class is now AutoCoded!
+
+#+BEGIN_SRC swift
+var workout = Workout()
+workout.name = "Run 1 mile"
+workout.mins = 15
+workout.id = 1
+workout.miles = 1
+
+var request = Receivable(type: SaveData)
+request["Workout"] = workout
+#+END_SRC
