@@ -1,0 +1,9 @@
+#+TITLE: Do Programmers Make For Better Bloggers?
+#+DESCRIPTION: A rare non iOS dev post
+#+KEYWORDS: programmers, bloggers, blog, korey hinton
+#+OPTIONS: timestamp:nil
+#+DATE: Sun, 15 Feb 2015
+
+
+#+INCLUDE: header.org
+
