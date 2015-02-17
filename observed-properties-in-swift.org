@@ -1,0 +1,163 @@
+#+TITLE: Observed Properties in Swift
+#+DESCRIPTION: Somewhere in between MVVM and MVC
+#+KEYWORDS: observed, properties, swift, ios, blog, korey hinton
+#+OPTIONS: timestamp:nil
+#+DATE: Tue, 17 Feb 2015
+
+
+#+INCLUDE: header.org
+
+* MVC or MVVM?
+  I recently read this article [[http://rasic.info/from-mvc-to-mvvm-in-swift/][From MVC to MVVM in Swift]] where the author uses the =didSet= property observer to set all the user interface elements any time the the ViewModel object gets set to a new object. We are going to build on this idea by applying this concept to an example where we have a =Person=, =PersonViewModel=, and =PersonViewController=.
+
+#+BEGIN_SRC swift
+class PersonViewController: UIViewController {
+
+    @IBOutlet weak var nameLabel: UILabel!
+    @IBOutlet weak var ageLabel: UILabel!
+    @IBOutlet weak var birthdateLabel: UILabel!
+
+    var personViewModel {
+        didSet {
+          nameLabel.text = personViewModel.name
+          ageLabel.text = personViewModel.age
+          birthdateLabel.text = personViewModel.birthdate
+        }        
+    }
+}
+#+END_SRC
+
+You can see in the ViewController that this is nice and simple. Although I'm not showing you the implementation of =Person= or =PersonViewModel=, you can assume the PersonViewModel wraps the Person object and the name, age, and birthdate are already of =String= type to be ready for assignment to the View. I wanted to show this example just to emphasize how the ViewController would use the ViewModel. Its important to note that the view elements only get updated if personViewModel is set to a new object. So basically you are switching out people. There are many valid use cases for this when reading data about a person on the screen. If the user selects a different person then it can nicely update all the fields automatically just by setting a new personViewModel. However, this would get tricky on an edit screen. What if we want them to be able to update individual fields on =Person= and have the view still be in sync with those changes. If we follow MVVM's ViewModel approach then we would have to create a whole new PersonViewModel with the 1 changed field. So I'm going to suggest a pattern that is more along the lines of MVC but where the Model is a little smarter and little more View aware.
+
+* A Smarter Model that knows how to format data for the View
+  So let's stick with MVC but give the model object a little bit of View knowledge like a ViewModel would have in MVVM. We'll use closure variables to act as observer/listener callbacks. These callbacks will call the ViewController with the data formatted as Strings so the ViewController can assign it directly to View objects.
+
+#+BEGIN_SRC swift
+class Person {
+    var name: String! {
+        didSet {
+            nameViewListener?(name)
+        }
+    }
+    var age: Int! {
+        didSet {
+            ageViewListener?("\(age)")
+        }
+    }
+    var birthdate: NSDate! {
+        didSet {
+            birthdateViewListener?("\(birthdate)")
+        }
+    }
+    var nameViewListener: ((String)->Void)?
+    var ageViewListener: ((String)->Void)?
+    var birthdateViewListener: ((String)->Void)?
+}
+#+END_SRC
+
+There are a couple of important things to notice in the code above. So, firstly didSet on any of these fields: name, age, birthday will result in a callback to the listener. The callback is always passing a string as an argument to the callback. This is where the model is a little more smart than the typical MVC Model. It has information that can be applied directly to the view. It knows it is a model that is meant to have data to be viewed. This allows string formatting code to be able to be tucked away from the ViewController and while I chose a simple way to display NSDate, using a formatter is a lot more work. Another important thing to note: the listeners are optional but the fields are optional and explicitly unwrapped, so this assumes these fields will be set before they are read from. I wil explain more why I did this in the section below.
+
+* Let's see it in action
+  So now we have a person object without any level of indirection that could be present with MVVM (where ViewModel owns Model) and everything is established in one place: =viewDidLoad=.
+
+#+BEGIN_SRC swift
+class ViewController: UIViewController {
+
+    @IBOutlet weak var nameLabel: UILabel!
+    @IBOutlet weak var ageLabel: UILabel!
+    @IBOutlet weak var birthdateLabel: UILabel!
+    
+    var person: Person!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Do any additional setup after loading the view, typically from a nib.
+        
+        person = Person()
+        person.nameViewListener = { (name: String)->Void in
+            self.nameLabel.text = name
+        }
+        person.ageViewListener = { (age: String)->Void in
+            self.ageLabel.text = age
+        }
+        person.birthdateViewListener = { (date: String)->Void in
+            self.birthdateLabel.text = date
+        }
+        person.name = "Bob"
+        person.age = 0
+        person.birthdate = NSDate()
+    }
+}
+#+END_SRC
+
+As I mentioned above the fields that should be required for a =Person= are explicitly unwrapped optionals. This was done rather than setting them in the initializer so that setting those properties will also do the necessary callback to set them to the view the first time as well. This is why the listeners are established before setting the name, age, and birthdate properties.
+
+Now let's add something that modifies one of the properties. We'll add a birthday button that will increase the age of the person.
+#+BEGIN_SRC swift
+@IBAction func birthdayPressed(sender: UIButton) {
+    person.age = person.age + 1
+}
+#+END_SRC
+
+* Putting it all together
+  Here is all the code to this person example.
+#+BEGIN_SRC swift
+import UIKit
+
+class Person {
+    var name: String! {
+        didSet {
+            nameViewListener?(name)
+        }
+    }
+    var age: Int! {
+        didSet {
+            ageViewListener?("\(age)")
+        }
+    }
+    var birthdate: NSDate! {
+        didSet {
+            birthdateViewListener?("\(birthdate)")
+        }
+    }
+    var nameViewListener: ((String)->Void)?
+    var ageViewListener: ((String)->Void)?
+    var birthdateViewListener: ((String)->Void)?
+}
+
+class ViewController: UIViewController {
+
+    @IBOutlet weak var nameLabel: UILabel!
+    @IBOutlet weak var ageLabel: UILabel!
+    @IBOutlet weak var birthdateLabel: UILabel!
+    
+    var person: Person!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Do any additional setup after loading the view, typically from a nib.
+        
+        person = Person()
+        person.nameViewListener = { (name: String)->Void in
+            self.nameLabel.text = name
+        }
+        person.ageViewListener = { (age: String)->Void in
+            self.ageLabel.text = age
+        }
+        person.birthdateViewListener = { (date: String)->Void in
+            self.birthdateLabel.text = date
+        }
+        person.name = "Bob"
+        person.age = 0
+        person.birthdate = NSDate()
+    }
+
+    @IBAction func birthdayPressed(sender: UIButton) {
+        person.age = person.age + 1
+    }
+
+}
+#+END_SRC
+
+* Conclusion
+  While this example only changes the age of the person this could be applied to all the properties. Its important to also consider that some user interface elements don't need updates on edits, like UITextField. Since the model can't know what the View needs I suggest adding listeners to all properties and making those listeners optional like I did in the example above.
