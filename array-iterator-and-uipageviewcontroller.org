@@ -1,0 +1,334 @@
+#+TITLE: Array Iterator and UIPageViewController
+#+DESCRIPTION: Iterate an array and track position state
+#+KEYWORDS: array, iterator, pageviewcontroller, UIPageViewController, swift, ios, blog, korey hinton
+#+OPTIONS: timestamp:nil
+#+DATE: Mon, 23 Mar 2015
+
+
+#+INCLUDE: header.org
+
+* DRY Principle
+  DRY meaning "Don't Repeat Yourself". Today I found myself typing out code that as programmers we probably type all the time. This code is index looping while tracking current position in an array. I'm actually surprised to think that there is nothing like this built into the language. I can't even count how many times I've written code like this:
+
+#+BEGIN_SRC swift
+func next() {
+    if currentIndex == array.count - 1 {
+        currentIndex = 0
+    } else {
+        current += 1
+    }
+}
+#+END_SRC
+
+Now what about looping the other way?
+
+#+BEGIN_SRC swift
+func previous() {
+    if currentIndex == 0 {
+        currentIndex = array.count - 1
+    } else {
+        currentIndex -= 1
+    }
+}
+#+END_SRC
+
+
+Now while this code seems trivial, it doesn't make sense to re-write this everytime. Also, the code will get more complex if we try to support 2 modes of iteration: looping allowed and looping not allowed.
+
+* Array Iterator
+  Here is a proposed solution. This code could probably be simplified since it seems to repeat a lot itself, but it does allow the caller's code to be greatly simplified. The reason I decided to wrap an array is because the Array type is a struct and can't be subclassed, also extending the struct doesn't allow us to store the current index. 
+#+BEGIN_SRC swift
+class ArrayIterator<T> {
+    var array = Array<T>()
+    var loops: Bool = false
+    private(set) var index = 0
+    
+    func current() -> T? {
+        var current: T? = nil
+        if array.count > 0 {
+            current = array[0]
+        }
+        return current
+    }
+    
+    func next() -> T? {
+        
+        var next: T? = nil
+        
+        if loops {
+            if index == array.count - 1 {
+                index = 0
+            } else {
+                index += 1
+            }
+            
+            next = array[index]
+            
+        } else {
+            
+            if index < array.count - 1 {
+                index += 1
+                next = array[index]
+            }
+        }
+        return next
+    }
+    func previous() -> T? {
+        var previous: T? = nil
+        
+        if loops {
+            
+            if index == 0 {
+                index = array.count - 1
+                
+            } else {
+                index -= 1
+            }
+            previous = array[index]
+        } else {
+            if index > 0 {
+                index -= 1
+                previous = array[index]
+            }
+        }
+        return previous
+    }
+    
+    
+    func peekNext() -> T? {
+        var next: T? = nil
+        
+        var newIndex = index
+        
+        if loops {
+            
+            if index == array.count - 1 {
+                newIndex = 0
+            } else {
+                newIndex += 1
+            }
+            
+            next = array[newIndex]
+            
+        } else {
+            
+            if index < array.count - 1 {
+                newIndex = index + 1
+                next = array[newIndex]
+            }
+        }
+        return next
+    }
+    
+    
+    func peekPrevious() -> T? {
+        var previous: T? = nil
+        
+        if loops {
+            
+            var newIndex = index
+            
+            if newIndex == 0 {
+                newIndex = array.count - 1
+            } else {
+                newIndex = newIndex - 1
+            }
+            
+            previous = array[newIndex]
+        } else {
+            if index > 0 {
+                var newIndex = index - 1
+                previous = array[newIndex]
+            }
+        }
+        return previous
+    }
+    
+    func atIndex(index idx:Int) -> T? {
+        var item: T? = nil
+        
+        if idx >= 0 && idx <= array.count - 1 {
+            item = array[idx]
+            index = idx
+        }
+        
+        return item
+    }
+    
+    func peekAtIndex(index idx:Int) -> T? {
+        
+        var item: T? = nil
+
+        if idx >= 0 && idx <= array.count - 1 {
+            item = array[idx]
+        }
+
+        return item
+    }
+    
+}
+#+END_SRC
+
+Source code available at: [[https://github.com/koreyhinton/ArrayIterator/blob/master/ArrayIterator.swift]].
+
+
+Here's a simple example of how to use this. Pretend we have a class =Item=. Now let's say we want to display one item at a time in slideshow form and the user (or implementer) can pick whether it loops or not.
+
+#+BEGIN_SRC swift
+class ItemDataSource {
+    var itemIterator = ArrayIterator<Item>()
+    init() {
+        itemIterator.array.append(Item("Milk"))
+        itemIterator.array.append(Item("Eggs"))
+        itemIterator.array.append(Item("Cheese"))
+    }
+    var loops = false {
+        didSet {
+            itemIterator.loops = loops
+        }
+    }
+    func nextItem() -> Item? {
+        return itemIterator.next()?
+    }
+    func previousItem() -> Item? {
+        return itemIterator.previous()?
+    }
+}
+#+END_SRC
+
+As you can see the index looping and index incrementing/decrementing is abstracted away. Since =nextItem= and =previousItem= functions are optional and return nil if there isn't a next item (when not looping) that could be sufficient for checking if there's a next one. I added the peek methods to allow you to look at the next index without changing the current index. Now if you've seen this problem before, UIPageViewController might have been the culprit. Every implementation I've seen of UIPageViewController is a nasty mess including the default code when you select Page-based template. Let's look how much cleaner it is.
+* UIPageViewController
+  Ok so let's set-up a Page-based template and get ready to remove code like crazy. After creating the template add in the [[https://github.com/koreyhinton/ArrayIterator/blob/master/ArrayIterator.swift][ArrayIterator.swift]] file to your new project. Before we remove code let's take a look at the ModelController file. What is all this???
+
+#+BEGIN_SRC swift
+    func indexOfViewController(viewController: DataViewController) -> Int {
+        // Return the index of the given data view controller.
+        // For simplicity, this implementation uses a static array of model objects and the view controller stores the model object; you can therefore use the model object to identify the index.
+        if let dataObject: AnyObject = viewController.dataObject {
+            return self.pageData.indexOfObject(dataObject)
+        } else {
+            return NSNotFound
+        }
+    }
+
+    // MARK: - Page View Controller Data Source
+
+    func pageViewController(pageViewController: UIPageViewController, viewControllerBeforeViewController viewController: UIViewController) -> UIViewController? {
+        var index = self.indexOfViewController(viewController as! DataViewController)
+        if (index == 0) || (index == NSNotFound) {
+            return nil
+        }
+        
+        index--
+        return self.viewControllerAtIndex(index, storyboard: viewController.storyboard!)
+    }
+
+    func pageViewController(pageViewController: UIPageViewController, viewControllerAfterViewController viewController: UIViewController) -> UIViewController? {
+        var index = self.indexOfViewController(viewController as! DataViewController)
+        if index == NSNotFound {
+            return nil
+        }
+        
+        index++
+        if index == self.pageData.count {
+            return nil
+        }
+        return self.viewControllerAtIndex(index, storyboard: viewController.storyboard!)
+    }
+#+END_SRC
+
+Wow that's a lot of code that seems to just be checking things. I've also done something similar to this in the past where a helper method takes in an index and gives you the view controller you want. With that implementation you need to store the index of each view controller. Another nasty part is checking for nil, explicitly returning nil, and checking for NSNotFound. ArrayIterator allows us to do this:
+
+#+BEGIN_SRC swift
+    func pageViewController(pageViewController: UIPageViewController, viewControllerBeforeViewController viewController: UIViewController) -> UIViewController? {
+        return pageIterator.previous()
+    }
+    
+    func pageViewController(pageViewController: UIPageViewController, viewControllerAfterViewController viewController: UIViewController) -> UIViewController? {
+        return pageIterator.next()
+    }
+#+END_SRC
+
+Read [[PageDataSource]] below to see how this was accomplished.
+
+** PageDataSource
+   Here is a full implementation of the UIPageViewController datasource. Get rid of ModelController and use this instead. You'll notice some design decisions I made from the start. Some of the most frustrating coding moments have happened when I am trying to chase down weird page view controller bugs. What might not be obvious is that the datasource by default doesn't provide the initial view controller. Even in the default template code the first view controller is set in the RootViewController instead of the data source. why oh why?? For this reason this datasource will take in the page view controller, set itself as the datasource and give it the initial view controller with the =setViewControllers:direction:animated:= method. Here it will provide view controllers with the colors of a stop light: red, yellow, green. You'll also need to remove DataViewController.swift and remove it from the storyboard since we are programmatically giving it view controllers for this example.
+#+BEGIN_SRC swift
+import UIKit
+
+class PageDataSource: NSObject, UIPageViewControllerDataSource {
+    
+    private var pageIterator = ArrayIterator<UIViewController>()
+    private var pageViewController: UIPageViewController
+    
+    init(pageViewController pvc: UIPageViewController) {
+        
+        pageViewController = pvc
+        
+        var redController = UIViewController()
+        redController.view.backgroundColor = UIColor.redColor()
+        var yellowController = UIViewController()
+        yellowController.view.backgroundColor = UIColor.yellowColor()
+        var greenController = UIViewController()
+        greenController.view.backgroundColor = UIColor.greenColor()
+        
+        pageIterator.loops = true
+        pageIterator.array.append(redController)
+        pageIterator.array.append(yellowController)
+        pageIterator.array.append(greenController)
+        
+        self.pageViewController.setViewControllers([pageIterator.current()!], direction: .Forward, animated: false, completion: nil)
+        
+        super.init()
+        pageViewController.dataSource = self
+    }
+    
+    func pageViewController(pageViewController: UIPageViewController, viewControllerBeforeViewController viewController: UIViewController) -> UIViewController? {
+        return pageIterator.previous()
+    }
+    
+    func pageViewController(pageViewController: UIPageViewController, viewControllerAfterViewController viewController: UIViewController) -> UIViewController? {
+        return pageIterator.next()
+    }
+}
+#+END_SRC
+
+Look how self-contained this is. We've also filled the requirement of being able to set whether it loops or not. Since the index of ArrayIterator starts at 0 by default it's =current()= function will give the first view controller to the =setViewControllers:direction:animated:completion:= method. Now let's update RootViewController to reflect these changes.
+
+** RootViewController
+   Some of this template code might be hacky, but anyway it came with the template. The only new things we need to do is create the page view controller, create the page data source, and give the data source the page view controller. That's it. As expected the RootViewController is taking care of adding the child view controller onto the screen with the default template code.
+#+BEGIN_SRC swift
+import UIKit
+
+class RootViewController: UIViewController, UIPageViewControllerDelegate {
+
+    var pageViewController: UIPageViewController!
+    var pageDataSource: PageDataSource!
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Do any additional setup after loading the view, typically from a nib.
+        // Configure the page view controller and add it as a child view controller.
+        pageViewController = UIPageViewController(transitionStyle: .PageCurl, navigationOrientation: .Horizontal, options: nil)
+        pageDataSource = PageDataSource(pageViewController: pageViewController)
+        
+        self.addChildViewController(pageViewController!)
+        self.view.addSubview(pageViewController!.view)
+
+        // Set the page view controller's bounds using an inset rect so that self's view is visible around the edges of the pages.
+        var pageViewRect = self.view.bounds
+        if UIDevice.currentDevice().userInterfaceIdiom == .Pad {
+            pageViewRect = CGRectInset(pageViewRect, 40.0, 40.0)
+        }
+        self.pageViewController!.view.frame = pageViewRect
+
+        self.pageViewController!.didMoveToParentViewController(self)
+
+        // Add the page view controller's gesture recognizers to the book view controller's view so that the gestures are started more easily.
+        self.view.gestureRecognizers = self.pageViewController!.gestureRecognizers
+    }
+}
+#+END_SRC
+
+* Conclusion
+  I find encapsulating this code to be particularly useful for various cases of array index tracking. It does come with the cost of a level of indirection to the array since the array is buried inside the array iterator. It definitely makes UIPageViewController look a lot less bulky.
