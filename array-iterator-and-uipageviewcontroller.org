@@ -188,10 +188,10 @@ class ItemDataSource {
         }
     }
     func nextItem() -> Item? {
-        return itemIterator.next()?
+        return itemIterator.next()
     }
     func previousItem() -> Item? {
-        return itemIterator.previous()?
+        return itemIterator.previous()
     }
 }
 #+END_SRC
