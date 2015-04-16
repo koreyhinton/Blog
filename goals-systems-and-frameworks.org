@@ -29,6 +29,7 @@ Role: Straight-A Student
 
 *** Framework-based System
 #+BEGIN_SRC org
+Project: Build a social network
 Frameworks: trigonometry, algebra
 System: Read Trig textbook everyday, solve a new trig each day, review algebra concepts everyday, work through a new proof each day
 Role: Mathematician
