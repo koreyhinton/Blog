@@ -1,0 +1,73 @@
+#+TITLE: Goals, Systems, and Frameworks
+#+DESCRIPTION: Goals produce results and systems are structured on frameworks
+#+KEYWORDS: goals, systems, frameworks, blog, korey hinton
+#+OPTIONS: timestamp:nil
+#+DATE: Wed, 15 Apr 2015
+
+
+#+INCLUDE: header.org
+
+* Goals, Systems, and Frameworks. What's the difference?
+  There is this interesting idea that has been sold to us: Goals lead to success. Not only is this not necessarily true, it can also cause us to feel like we are failing until we succeed at the goal. Another way to look at this is to create systems instead of goals. Systems are more like routines, habits or actions you can do on a daily (or other time-based) basis. You can put your focus into creating a system that helps you achieve something consistently. 
+
+Scott Adams talks about this concept in his book "How to Fail at Almost Everything and Still Win Big: Kind of the Story of My Life". Losing x # of pounds would be a goal while having a healthy and active lifestyle would be a system.
+
+Goals are results-oriented while systems are process-oriented. Processes can produce results as a by-product without focusing in on the result. With systems you are achieving in the now and forming lasting habits while goals get you pumped up initially and then you don't feel any accomplishment until it is achieved. 
+
+I think that we can add another classification into the mix: a framework. A framework is a structure underlying a system. While you can build a system based around a goal, a lot times it might be more beneficial to build it upon something more abstract. A framework is something that can be reused in the future. Doing your homework could be part of a system based on a goal to earn an A in a class. A framework would be what you are learning that can be applied in the future. For instance, public speaking skills can be a framework you can use whenever you need to present in front of other people. A student with a goal-based system would only learn enough to earn an A and probably won't bother learning the material well enough so it sticks long-term as a framework that will benefit them later.
+
+* Real Life Examples
+** Trig Students
+   Imagine 2 students taking a trigonometry class. One wants an A and the other wants to become a better mathematician and focuses on really learning trigonometry. The results may pay off for the student who isn't focusing on mastering the role of being a straight-A student towards the end of the year, and if not then they will definitely pay off in future math classes. His desire to learn math allows him to study algebra even though it doesn't directly relate to the Trig class.
+
+*** Goal-based System
+#+BEGIN_SRC org
+Goal: Earn an A in Trig Class
+System: Solve homework problems each day, memorize trig identities and formulas, take practice tests, cram for tests
+Role: Straight-A Student
+#+END_SRC
+
+*** Framework-based System
+#+BEGIN_SRC org
+Frameworks: trigonometry, algebra
+System: Read Trig textbook everyday, solve a new trig each day, review algebra concepts everyday, work through a new proof each day
+Role: Mathematician
+#+END_SRC
+    
+** Musicians
+   Imagine there are 2 musicians who are getting ready for an audition. One is results-oriented and has set a goal to win the audition. The other is process-oriented and focuses more on his daily system. The one musician picks up his instrument to practice with determination to win the audition while the other understands his role as a musician. The goal-focused musician might skip or shorten his warmup to spend more time on practicing the material while the other is focused on improving what he knows to be the most important thing to work on as a musician. This might be something completely irrelevant to the audition material. When audition day comes the goal-oriented musician wins the part because he knew the material better and missed less notes. However the musician with a solid system sounded better on the notes played correctly. While this win might seem big to the goal-oriented musician, it is actually a small one that won't last over time. The one that has been improving his sound gets to take that with him when he practices for the next audition and in the meantime he's already been mastering new things. Meanwhile the musician that had previously won now has to start over with each new audition piece and is over-practicing just to try and keep up with the solid musicianship the other musician has already mastered. One musician only cared about tangible achievements while the other musician was trying for something more rewarding. Becoming an expert in his role as a musician will accelerate him far past the skills of the one who lives achievement to achievement.
+*** Goal-based System
+#+BEGIN_SRC org
+Goal: Win Audition
+System: Practice audition material 2 hours each day, practice site reading 1/2 hour each day
+Role: Best Auditionee
+#+END_SRC
+
+*** Framework-based System
+#+BEGIN_SRC org
+Frameworks: music theory, pitch quality
+System: Study from music theory book each day, long warmup each day working on perfecting sound, listen to sounds from professional musicians you want to emulate
+Role: Musician
+#+END_SRC
+
+** Software Developers
+   A smart software developer will spend a fair amount of time creating frameworks that can be reused in future projects. He will also spend time learning concepts that are project-agnostic and will benefit him in the future. This is far better than just getting the problem solved in the easiest fastest way possible. Software will be maintained, broken apart into multiple pieces, and extended onto. Its important to be learning about and creating frameworks that can be used in the future.
+
+*** Goal-based System
+#+BEGIN_SRC org
+Project: Build a social network
+Goal: Get project done early
+System: get something big accomplished in project everyday, meet deadlines
+Role: Fast (spaghetti-code) Developer
+#+END_SRC
+
+*** Framework-based System
+#+BEGIN_SRC org
+Frameworks: social networks, databases, responsive design
+System: Study social networks, learn database design, use and compare various web responsive APIs, discuss ideas with other developers, build reusable components
+Role: Software Developer
+#+END_SRC
+
+
+* It's worth the sacrifice
+  It really is worth the sacrifice to invest in frameworks. "Getting by", "making the deadline", "meeting my goals", "going through the motions" are things people say when they are focusing on goals. Frameworks, which are the knowledge and skills that help you to think intelligently and have high quality performance, will pay off in the long run. The longer you live achievement to achievement the less you actually accomplish and the more unacomplished you will feel. 
