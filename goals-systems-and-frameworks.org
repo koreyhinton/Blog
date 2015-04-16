@@ -19,7 +19,6 @@ I think that we can add another classification into the mix: a framework. A fram
 * Real Life Examples
 ** Trig Students
    Imagine 2 students taking a trigonometry class. One wants an A and the other wants to become a better mathematician and focuses on really learning trigonometry. The results may pay off for the student who isn't focusing on mastering the role of being a straight-A student towards the end of the year, and if not then they will definitely pay off in future math classes. His desire to learn math allows him to study algebra even though it doesn't directly relate to the Trig class.
-
 *** Goal-based System
 #+BEGIN_SRC org
 Goal: Earn an A in Trig Class
@@ -29,7 +28,6 @@ Role: Straight-A Student
 
 *** Framework-based System
 #+BEGIN_SRC org
-Project: Build a social network
 Frameworks: trigonometry, algebra
 System: Read Trig textbook everyday, solve a new trig each day, review algebra concepts everyday, work through a new proof each day
 Role: Mathematician
@@ -64,11 +62,12 @@ Role: Fast (spaghetti-code) Developer
 
 *** Framework-based System
 #+BEGIN_SRC org
+Project: Build a social network
 Frameworks: social networks, databases, responsive design
 System: Study social networks, learn database design, use and compare various web responsive APIs, discuss ideas with other developers, build reusable components
 Role: Software Developer
 #+END_SRC
 
-
+    
 * It's worth the sacrifice
   It really is worth the sacrifice to invest in frameworks. "Getting by", "making the deadline", "meeting my goals", "going through the motions" are things people say when they are focusing on goals. Frameworks, which are the knowledge and skills that help you to think intelligently and have high quality performance, will pay off in the long run. The longer you live achievement to achievement the less you actually accomplish and the more unacomplished you will feel. 
