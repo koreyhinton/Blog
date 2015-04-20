@@ -1,0 +1,75 @@
+#+TITLE: Flexible Goals
+#+DESCRIPTION: Flexible goals vs Static goals
+#+KEYWORDS: smart, goals, dynamic, evaluate, systems, static, frameworks, flexible, blog, korey hinton
+#+OPTIONS: timestamp:nil
+#+DATE: Mon, 20 Apr 2015
+
+
+#+INCLUDE: header.org
+
+* SMART goals are static
+  We've all learned that the "correct" way to set goals is by using the SMART acronym to help make them as descriptive as possible. A SMART goal is described specifically and is bound to a particular time. All of these specific details are now statically part of the goal, inflexible to change. There are good cases for doing this, but I'd argue not for everything and not for everyone. A static (SMART) goal can work great if the goal will likely not change or if you can keep a positive attitude to having to change the goal later on without feeling like you failed by not accomplishing what you spent a good deal of time planning for.
+** Breaking down SMART goals
+   Static SMART goals can be broken down into pieces that work towards helping you achieve the goal. This typically happens during weekly/daily planning or up front when you outline the goal. The broken down parts are typically called measures, subgoals, tasks, or objectives. The broken down parts can be problematic because they might change as well. They are typically specific as well and since they involve a specific action or event they do not adapt well to change and only work for that mini accomplishment towards the goal.
+** When to choose static over dynamic goals
+   Static goals work great for things that are complex and need to be broken down into parts. For instance, architecting a software product has a lot of parts and pieces. Software is also prone to changing requirements but there are many static parts that can be classified in pieces. For instance most programs are going to have a user interface (screen) that the user will interact with. The need for this item will probably not change. Also, creating a backing store to store the information is also something that will not lose its importance later on.
+   Any type of "Plan" can also be complex as well and requires a lot of parts. For instance, a life or career plan. However, these unlikely will benefit much from a static goal model. I'd like to move away from doing "Planning" and follow a more dynamic model of evaluating.
+* Flexible goals are naked
+  Now let's compare a static goal with a flexible one.
+
+Static Goal:
+#+BEGIN_SRC org
+Graduate with Honors with Mechanical Engineering undergraduate degree with a 3.8 or greater GPA from UCLA in 4 years
+#+END_SRC
+
+Dynamic Goal:
+#+BEGIN_SRC org
+Graduate with Mechanical Engineering undergraduate degree
+#+END_SRC
+
+Not only is the dynamic goal more simple and easier to remember, it is also more flexible and it is more focused. Changing schools will not affect the degree and if a major life situation affects grades or the length of time to graduate it will not change the goal. The dynamic goal is based on knowns that are very likely to happen and the most important thing to happen. If there was any doubt about which degree to get it could be further simplified to =Graduate with undergraduate degree= or =Graduate with Engineering degree=. Also, there is a single focal point on graduating. Now since this new model is not specific it doesn't quite make sense to try to break it into parts. It might make more sense to build an evaluation system you can use regularly to see if you are on track and the evaluation questions will change based on the current need for the goal.
+* Evaluating dynamic goals
+  I think a useful tool could be to create a questionairre you use weekly to evaluate how well you are working towards that goal. It can be just a simple list of a few questions. Keep it simple.
+
+#+BEGIN_SRC org
+Goal: Run a Marathon
+
+Goal Evaluation:
+- Am I running 4 or more days per week?
+- Do I properly stretch before and after running?
+- Do I use proper running techniques (breathing, form)?
+#+END_SRC
+
+  In a static goal you might add a task to your weekly plan towards that goal to communicate with a particular person to make sure a certain part of the goal is moving forward. The task can be specific with the name of the person and exactly what its about and maybe even a time to schedule a phone call with that person. The time to plan out all of these things is tedious and in many cases you don't need to plan out something you know you need to do. Its a very small achievement towards a goal that doesn't bring much sense of accomplishment anyway. Instead it can be written more generically and included in your flexible goal evaluation. For instance:
+
+#+BEGIN_SRC org
+...
+Goal Evaluation:
+- Do I follow-up regularly with people I'm working with?
+...
+#+END_SRC
+
+This will make sure you remember to do this regularly without having to sub-task out everything. If it no longer becomes as important to communicate with others you can take that off your evaluation and replace it with a more fitting question. Here are two goal examples I am doing currently.
+
+#+BEGIN_SRC org
+Goal: Graduate college
+
+Goal Evaluation:
+- [ ? ] Successfully managing upcoming assignments and quizzes
+- [ ? ] Studying 5 days per week
+- [ ? ] Attending and listening in class
+#+END_SRC
+
+#+BEGIN_SRC org
+Goal: Write a weekly blog
+
+Goal Evaluation:
+- [ ? ] New post every week
+- [ ? ] Tracking new blog post ideas
+- [ ? ] Reading other blogs every week
+#+END_SRC
+
+
+* Further Reading
+  I've recently stumbled upon the idea of using systems instead of goals from Scott Adam's book "How to Fail at Almost Everything and Still Win Big: Kind of the Story of My Life". I do however see a need for a few very important goals but I think using a more dynamic model with an evaluation system can be better than trying to plan out your success (or failure).
+  Also, see my post: [[file:goals-systems-and-frameworks.org][Goals, Systems, and Frameworks]]
