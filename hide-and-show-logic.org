@@ -1,0 +1,133 @@
+#+TITLE: Hide and Show Logic
+#+DESCRIPTION: Effectively use hide and show logic in Swift
+#+KEYWORDS: hide, show, logic, swift, ios, blog, korey hinton
+#+OPTIONS: timestamp:nil
+#+DATE: Thu, 28 May 2015
+
+
+#+INCLUDE: header.org
+* Frustration
+  Building a view that has multiple display modes can be a real pain. Especially if the show/hide logic is spread all over the code. I recently took on the task of having a login screen that doubled as the main screen after logging in with a few shared elements. This time I didn't want to be burned like before. So I asked myself the question "How can I make it so that adding new elements to only show up in one mode would be as simple as doing just 1 thing like you do when you change an app constant?" It turns out you can and I can't think of a better way to handle display logic.
+* IBOutlet Collection
+  You can control-drag multiple view elements from the storyboard to the view controller as an array of outlets. You can do this in addition to dragging a view to its own outlet. Do this for each mode you have. 
+* One liner for iterating
+  Each time I want to set the hidden property I will have to iterate through the outlet collection array. An easy way to do this and in 1 line of code is through the map function. We map the hidden property for each view in the collection to what state we'd like in 1 line of code:
+#+BEGIN_SRC swift
+myViews.map { $0.hidden = true }
+#+END_SRC
+
+This will provide the same result as iterating:
+#+BEGIN_SRC swift
+for myView in myViews {
+   myView.hidden = true
+}
+#+END_SRC
+
+While that's only a 2 line difference, a bunch of iterations all over the place don't make for as readable code. Its much cleaner to use the =map= function.
+
+* Login Example
+  For the login example I have 2 collections: successViews and loginViews to go with 2 modes of viewing: either as logged in or needing to log in.
+** Login Example Code
+#+BEGIN_SRC swift
+import UIKit
+
+class LoginViewController: UIViewController {
+    
+    @IBOutlet var successViews: [UIView]!
+    @IBOutlet var loginViews: [UIView]!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        successViews.map { $0.hidden = true }
+        loginViews.map { $0.hidden = false }
+    }
+    
+    @IBAction func loginPressed(sender: UIButton) {
+        successViews.map { $0.hidden = false }
+        loginViews.map { $0.hidden = true }
+    }
+    
+    @IBAction func logoutPressed(sender: UIButton) {
+        successViews.map { $0.hidden = true }
+        loginViews.map { $0.hidden = false }
+    }
+}
+#+END_SRC
+
+In =viewDidLoad= only the login views are shown. Once they press login the login views are hidden and the success views are shown instead. And then it switches back if they press logout.
+** Analysis
+   You can see that even though we have to spread out the show/hide logic between multiple functions in the code it is only 1 line to set the hidden state for all views of a particular mode. This makes it so readable. If you later read through the code trying to see the different hidden states of successViews you can just look at each =successViews.map= call and see if those views are getting set to hidden or not.
+* Adding New Elements
+  So now that you have all the hide logic in place for all of your outlet collections (view arrays) adding a new element to conform to the same logic is dead simple. Just add the view to the storyboard and then control-drag it to the correct collection. Boom done.
+
+* Encapsulate
+  Adding additional modes is a little tricky and it would be a good idea anyways to put all the show/hide logic into 1 place. So let's add encapsulate the logic into 1 place and add an additional mode. We'll put the logic into mode's didSet so that all you have to do to show/hide the views is just set the mode.
+
+#+BEGIN_SRC swift
+import UIKit
+
+class LoginViewController: UIViewController {
+
+    enum LoginMode {
+        case Login
+        case Success
+        case Error
+    }
+
+    var mode: LoginMode! {
+        didSet {
+            switch mode! {
+            case .Login:
+                successViews.map { $0.hidden = true }
+                loginViews.map { $0.hidden = false }
+                errorViews.map { $0.hidden = true }
+            case .Success:
+                successViews.map { $0.hidden = false }
+                loginViews.map { $0.hidden = true }
+                errorViews.map { $0.hidden = true }
+            case .Error:
+                successViews.map { $0.hidden = true }
+                loginViews.map { $0.hidden = false }
+                errorViews.map { $0.hidden = false }
+            }
+        }
+    }
+    
+    @IBOutlet var successViews: [UIView]!
+    @IBOutlet var loginViews: [UIView]!
+    @IBOutlet var errorViews: [UIView]!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        mode = .Login
+    }
+    
+    @IBAction func loginPressed(sender: UIButton) {
+        mode = .Success
+    }
+    
+    @IBAction func logoutPressed(sender: UIButton) {
+        mode = .Login
+    }
+}
+#+END_SRC
+** Simplify Further
+   You could further simplify the mode's setter so that you do it in less lines of code. This is easier to read in my opinion
+#+BEGIN_SRC swift
+var mode: LoginMode! {
+    didSet {
+        successViews.map {
+            $0.hidden = (self.mode == .Success)
+        }
+        
+        loginViews.map {
+            $0.hidden = (self.mode == .Login || self.mode == .Error)
+        }
+        
+        errorViews.map {
+            $0.hidden = (self.mode == .Error)
+        }
+    }
+}
+#+END_SRC
