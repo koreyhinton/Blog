@@ -1,0 +1,148 @@
+#+TITLE: Sync Facade
+#+DESCRIPTION: Goals produce results and systems are structured on frameworks
+#+KEYWORDS: goals, systems, frameworks, blog, korey hinton
+#+OPTIONS: timestamp:nil
+#+DATE: Wed, 15 Apr 2015
+
+
+#+INCLUDE: header.org
+
+* Code
+#+BEGIN_SRC swift
+enum SyncDescriptor1 {
+    case Push
+    case Pull
+    case Verify
+    case PushPull
+    case VerifyPush
+    case VerifyPull
+    case VerifyPushPull
+}
+
+enum SyncDescriptor2 {
+    case Passive // light background sync
+    case Active // user initiated or system required full sync
+}
+
+class SyncAPI {
+    internal func verify(completion:(Bool)->Void) {
+        completion(true)
+    }
+    internal func push(completion:((Bool)->Void)?) {
+        completion?(true)
+    }
+    internal func pull(completion:((Bool)->Void)?) {
+        completion?(true)
+    }
+}
+
+class SyncFacade1: SyncAPI {
+    
+    func sync(descriptor: SyncDescriptor1 = .VerifyPushPull, completion:((Bool)->Void)? = nil) {
+
+        switch descriptor {
+        case .Push:
+            self.push { (success)->Void in
+                completion?(success)
+            }
+        case .Pull:
+            self.pull { (success)->Void in
+                completion?(success)
+            }
+        case .Verify:
+            self.verify({ (success) -> Void in
+                completion?(success)
+            })
+        case .PushPull:
+            self.push({ (pushSuccess) -> Void in
+                if pushSuccess == false {
+                    completion?(false)
+                } else {
+                    self.pull({ (pullSuccess) -> Void in
+                        completion?(pullSuccess)
+                    })
+                }
+            })
+        //...
+        default:
+            completion?(false)
+        }
+    }
+}
+
+
+class SyncFacade2: SyncAPI {
+    
+    var isAuthenticated = false
+    
+    func sync(descriptor: SyncDescriptor2 = .Active, completion:((Bool)->Void)? = nil) {
+        
+        switch descriptor {
+        case .Active:
+            self.verify({ (verifySuccess) -> Void in
+                if verifySuccess {
+                    self.isAuthenticated = true
+                    self.push({ (pushSuccess) -> Void in
+                        if pushSuccess {
+                            self.pull({ (pullSuccess) -> Void in
+                                completion?(pullSuccess)
+                            })
+                        } else {
+                            completion?(false)
+                        }
+                    })
+                } else {
+                    self.isAuthenticated = false
+                    completion?(false)
+                }
+            })
+        case .Passive:
+            if isAuthenticated {
+                self.pull({ (success) -> Void in
+                    completion?(success)
+                })
+            } else {
+                completion?(false)
+            }
+        }
+    }
+}
+
+/*
+    Facade #1
+    Caller determines sync operations
+ */
+let syncAPI1 = SyncFacade1()
+
+// verify and push (1 of 7 sync operations)
+syncAPI1.sync(descriptor: .VerifyPush) { (success) -> Void in
+    if success {
+        // run update code
+    }
+}
+
+// light sync, with no verify the caller assumes they've already authenticated
+syncAPI1.sync(descriptor: .Pull)
+
+
+/*
+    Facade #2
+    Callee determines sync operations
+    (less configurable but a better facade)
+*/
+
+let syncAPI2 = SyncFacade2()
+
+// full sync
+syncAPI2.sync(descriptor: .Active) { (success) -> Void in
+    if success {
+        // run update code
+    }
+}
+
+// full sync
+syncAPI2.sync()
+
+// light sync
+syncAPI2.sync(descriptor: .Passive)
+#+END_SRC
